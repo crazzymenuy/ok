@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="item-detail">
+    <div class="item-images">
+        <div class="slider">
+            <div class="slides">
+                {% for image_url in item.image_url.split('/$-$/') %}
+                    <div class="slide">
+                        <img src="{{ url_for('static', filename=image_url.split('static/')[1]) }}" alt="{{ item.name }}" class="item-image">
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="prev" onclick="changeSlide(-1)">&#10094;</button>
+            <button class="next" onclick="changeSlide(1)">&#10095;</button>
+        </div>
+    </div>
+    <h2 class="item-name">{{ item.name }}</h2>
+    <p class="price">{{ item.price }} грн</p>
+    <p class="item-description">{{ item.description }}</p>
+    <div class="button-container">
+        <a href="javascript:void(0);" class="btn buy-button" onclick="openModal('{{ item.id }}', '{{ item.name }}', '{{ item.price }}');">Купити</a>
+        <a href="{{ url_for('shop') }}" class="btn">Назад до магазину</a>
+    </div>
+</div>
+
+<!-- Модальне вікно -->
+<div id="buyModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalItemName"></h2>
+        <p id="modalItemPrice"></p>
+        <form action="{{ url_for('process_order2') }}" method="POST">
+            <input type="hidden" name="item_id" id="modalItemId">
+            <label for="name">Ім'я:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="phone">Номер телефону:</label>
+            <input type="tel" id="phone" name="phone" required>
+            <button type="submit" class="btn">Замовити</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        let slideIndex = 0;
+        showSlides(slideIndex);
+
+        function changeSlide(n) {
+            showSlides(slideIndex += n);
+        }
+
+        function showSlides(n) {
+            let slides = document.querySelectorAll('.slide');
+            if (n >= slides.length) {
+                slideIndex = 0;
+            }
+            if (n < 0) {
+                slideIndex = slides.length - 1;
+            }
+            for (let slide of slides) {
+                slide.style.display = 'none';
+            }
+            slides[slideIndex].style.display = 'block';
+        }
+
+        function openModal(itemId, itemName, itemPrice) {
+            document.getElementById('modalItemId').value = itemId;
+            document.getElementById('modalItemName').innerText = itemName;
+            document.getElementById('modalItemPrice').innerText = itemPrice + ' грн';
+            document.getElementById('buyModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('buyModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('buyModal')) {
+                closeModal();
+            }
+        }
+    </script>
+{% endblock %}
